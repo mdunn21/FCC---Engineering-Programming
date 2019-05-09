@@ -1,1 +1,68 @@
-oooooo
+# Load the Drive helper and mount
+from google.colab import drive
+drive.mount('/content/drive/') #turned out to be quite helpful!
+
+import numpy as np #numpy has many tools
+import pandas as pd #pandas is excellent in generating database information
+from matplotlib import pyplot as plt # to be used in graphing trends
+import seaborn as sns # plots
+from matplotlib.pyplot import figure #nice looking figures
+from IPython.display import display # multiple table display
+
+df_batting = pd.read_csv('/content/drive/My Drive/batting.csv')
+df_pitching = pd.read_csv('/content/drive/My Drive/pitching.csv')
+df_teams = pd.read_csv('/content/drive/My Drive/team.csv')
+df_players = pd.read_csv('/content/drive/My Drive/player.csv')
+
+# below for using uploaded file instead of using Google Drive
+#df_batting = pd.read_csv('batting.csv')
+#df_pitching = pd.read_csv('pitching.csv')
+#df_teams = pd.read_csv('team.csv')
+#df_players = pd.read_csv('player.csv')
+
+trends = pd.pivot_table(df_teams, index=['year'], values = ['hr', 'so', 'sb'], aggfunc = np.sum) #all three stats, 1 table
+trend_hr = pd.pivot_table(df_teams, index=['year'], values = ['hr'], aggfunc = np.sum) #year & hr
+trend_so = pd.pivot_table(df_teams, index=['year'], values = ['so'], aggfunc = np.sum) #year & strikeout
+trend_sb = pd.pivot_table(df_teams, index=['year'], values = ['sb'], aggfunc = np.sum) #year & stolen base
+
+sns.set()
+
+# Plot Homeruns
+trend_hr.plot(figsize=(10,6))
+plt.xlabel('Year')
+plt.ylabel('Home Runs')
+plt.title('MLB Homerun Trend')
+
+# Plot Strike Outs
+trend_so.plot(figsize=(10,6))
+plt.xlabel('Year')
+plt.ylabel('Strike Outs')
+plt.title('MLB Strikeout Trend')
+
+# Plot Stolen Bases
+trend_sb.plot(figsize=(10,6))
+plt.xlabel('Year')
+plt.ylabel('Stolen Bases')
+plt.title('MLB Stolen Base Trend')
+
+
+top_hr_yrs = trend_hr.sort_values('hr', axis=0, ascending=False).head(5) #5 years with most Homeruns
+top_so_yrs = trend_so.sort_values('so', axis=0, ascending=False).head(5) #5 years with most strikeouts
+top_sb_yrs = trend_sb.sort_values('sb', axis=0, ascending=False).head(5) #5 years with most stolen bases
+display(top_hr_yrs, top_so_yrs, top_sb_yrs) #display function to produce all three tables in one sweep
+
+trend_hr = trend_hr[(trend_hr.T != 0).any()] # will remove rows with 0 HR; impossible
+bottom_hr_yrs = trend_hr.sort_values('hr', axis=0, ascending=False).tail(5) # 5 years with lowest homerun total
+
+trend_so = trend_so[(trend_so.T != 0).any()] # will remove rows with 0 SO; impossible 
+bottom_so_yrs = trend_so.sort_values('so', axis=0, ascending=False).tail(5) # 5 years with lowest strikeout totals
+
+trend_sb = trend_sb[(trend_sb.T != 0).any()] # will remove rows with 0 SB; impossible
+bottom_sb_yrs = trend_sb.sort_values('sb', axis=0, ascending=False).tail(5) # 5 years with lowest stolen base totals
+
+display(bottom_hr_yrs, bottom_so_yrs, bottom_sb_yrs) #display function
+
+hitters = pd.pivot_table(df_batting, index=['player_id', 'year'], values = ['hr', 'sb'])
+hitters = hitters[(hitters.T != 0).any()] # removes batters with 0 HR AND 0 SB
+
+hitters
